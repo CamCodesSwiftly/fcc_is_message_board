@@ -6,13 +6,43 @@ const { v4: uuidv4 } = require('uuid');
 module.exports = function (app) {
   app.route('/api/threads/:board')
     .get((req, res) => {
+      console.log(req.params)
+
       const boardName = req.params.board
-      res.json(boards[boardName].messages)
+      const board = boards[boardName].messages
+
+      //1. Filter: 10 most recently bumped on messages
+      board.sort((a, b) => new Date(b.bumped_on) - new Date(a.bumped_on));
+      let board10 = board.slice(0, 10)
+
+      //2. Filter: 3 most recently created replies
+      board10.forEach(obj => { //sort descending by created on
+        obj.replies.sort((a, b) => new Date(b.created_on) - new Date(a.created_on));
+      });
+
+      //copy in order not to cut the original data
+      let board10replies3 = JSON.parse(JSON.stringify(board10));
+      // now filter only the top 3 comments
+      board10replies3.forEach(obj => {
+        obj.replies = obj.replies.slice(0, 3);
+      });
+
+      //3. Filter: hide delete_password and reported
+      //create a copy again
+
+      board10replies3.forEach(obj => {
+        delete obj.delete_password
+        obj.replies.forEach(reply => {
+          // Delete the delete_password and reported keys from each reply object
+          delete reply.delete_password;
+          delete reply.reported;
+        });
+      });
+
+      res.json(board10replies3)
     })
     .post((req, res) => {
       const boardName = req.params.board
-      console.log("trying to create a new board with a thread")
-      console.log(req.body, req.params)
 
       //1. create message
       let newMessage = {
@@ -38,7 +68,8 @@ module.exports = function (app) {
       res.redirect(`/b/${boardName}/`)
     })
 
-  app.route('/api/replies/:board')
+  app
+    .route('/api/replies/:board')
     .get((req, res) => {
 
       const boardName = req.params.board
@@ -48,8 +79,6 @@ module.exports = function (app) {
       res.json(foundMessage)
     })
     .post((req, res) => {
-      console.log("trying to create a reply to an existing message of an existing board")
-      console.log(req.body, req.params)
 
       // 1. create reply
       const replyDate = new Date().toISOString()
