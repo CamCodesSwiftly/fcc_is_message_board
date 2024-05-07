@@ -6,7 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 module.exports = function (app) {
   app.route('/api/threads/:board')
     .get((req, res) => {
-      console.log(req.params)
+
 
       const boardName = req.params.board
       const board = boards[boardName].messages
@@ -72,10 +72,23 @@ module.exports = function (app) {
     .route('/api/replies/:board')
     .get((req, res) => {
 
+      console.log(req.params)
+      console.log(req.query)
+
+
       const boardName = req.params.board
       const arrayToSearchThrough = boards[boardName].messages
       const idToSearch = req.query.thread_id
       let foundMessage = findMessage(arrayToSearchThrough, idToSearch)
+
+      //clean up before sending back to client
+      //but its weird fcc didnt let me use a copy, because now the data is gone.. maybe i need to revisit here
+      delete foundMessage.delete_password
+      for (let reply of foundMessage.replies) {
+        delete reply.delete_password
+        delete reply.reported
+      }
+
       res.json(foundMessage)
     })
     .post((req, res) => {
