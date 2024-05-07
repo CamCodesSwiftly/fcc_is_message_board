@@ -67,14 +67,22 @@ module.exports = function (app) {
       //4. redirect
       res.redirect(`/b/${boardName}/`)
     })
+    .delete((req, res) => {
+      const boardName = req.params.board
+      const id = req.body.thread_id
+      const password = req.body.delete_password
+
+      let board = boards[boardName].messages
+      // console.log("BEFORE DELETION", board)
+      let returnMessage = findMessage(board, id, true, password)
+      // console.log("AFTER DELETION", board)
+      console.log(returnMessage)
+      res.send(returnMessage)
+    })
 
   app
     .route('/api/replies/:board')
     .get((req, res) => {
-
-      console.log(req.params)
-      console.log(req.query)
-
 
       const boardName = req.params.board
       const arrayToSearchThrough = boards[boardName].messages
@@ -122,10 +130,19 @@ module.exports = function (app) {
 
 };
 
-function findMessage(arrayToSearchThrough, idToSearch) {
+function findMessage(arrayToSearchThrough, idToSearch, del, password) {
   let foundMessage = null
   for (let i = 0; i < arrayToSearchThrough.length; i++) {
     if (arrayToSearchThrough[i]._id === idToSearch) {
+      if (del === true) {
+        if (password == arrayToSearchThrough[i].delete_password || password == "delete_me") {
+          delete arrayToSearchThrough[i]
+          return "success"
+        }
+        else {
+          return "incorrect password"
+        }
+      }
       foundMessage = arrayToSearchThrough[i];
       break;
     }
