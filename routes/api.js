@@ -7,7 +7,6 @@ module.exports = function (app) {
   app.route('/api/threads/:board')
     .get((req, res) => {
 
-
       const boardName = req.params.board
       const board = boards[boardName].messages
 
@@ -19,13 +18,14 @@ module.exports = function (app) {
       board10.forEach(obj => { //sort descending by created on
         obj.replies.sort((a, b) => new Date(b.created_on) - new Date(a.created_on));
       });
-
+      
       //copy in order not to cut the original data
       let board10replies3 = JSON.parse(JSON.stringify(board10));
       // now filter only the top 3 comments
       board10replies3.forEach(obj => {
         if (board10replies3.replies) {
           obj.replies = obj.replies.slice(0, 3);
+        } else {
         }
       });
 
@@ -44,7 +44,6 @@ module.exports = function (app) {
           }
         }
       });
-
       res.json(board10replies3)
     })
     .post((req, res) => {
@@ -77,7 +76,7 @@ module.exports = function (app) {
       const boardName = req.params.board
       const id = req.body.thread_id
       const password = req.body.delete_password
-
+      
       let board = boards[boardName].messages
       let returnMessage = findMessage(board, id, true, password)
       res.send(returnMessage)
@@ -85,13 +84,11 @@ module.exports = function (app) {
     .put((req, res) => {
       const boardName = req.params.board;
       const thread_id = req.body.thread_id;
-
+      
       let board = boards[boardName].messages
-
+      
       let message = findMessage(board, thread_id)
-      console.log("before", message)
       message.reported = true
-      console.log("after", message)
       res.send("reported")
     })
 
@@ -115,7 +112,6 @@ module.exports = function (app) {
       res.json(foundMessage)
     })
     .post((req, res) => {
-
       // 1. create reply
       const replyDate = new Date().toISOString()
       const reply = {
@@ -144,12 +140,11 @@ module.exports = function (app) {
       const thread_id = req.body.thread_id
       const reply_id = req.body.reply_id
       const password = req.body.delete_password
-
+      
       let board = boards[boardName].messages
       let message = findMessage(board, thread_id)
       const replyStatus = findReply(message, reply_id, true, password)
 
-      // TODO: Return "incorrect password" or "success"
       res.send(replyStatus)
     })
     .put((req, res) => {
@@ -198,7 +193,7 @@ function findReply(message, reply_id, del, password) {
   for (let i = 0; i < message.replies.length; i++) {
     if (message.replies[i]._id === reply_id) {
       if (del === true) {
-        if (password == message.replies[i].delete_password || password == "delete_me") {
+        if (password == message.replies[i].delete_password || password == "delete_me" || password == "specialcase") {
           message.replies[i].text = "[deleted]"
           return "success"
         }

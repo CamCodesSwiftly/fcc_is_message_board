@@ -46,7 +46,23 @@ const extraMessage = {
   created_on: new Date(time_now.getTime() + 11 * 1000).toISOString(), // Varying timestamps
   bumped_on: new Date(time_now.getTime() + 11 * 1000).toISOString(), // Varying timestamps
   delete_password: "123",
-  replies: [...generateReplies("987654321"),]
+  replies: generateReplies("987654321")
+};
+const extraMessage2 = {
+  _id: "9876543210",
+  text: "Extra Message2",
+  created_on: new Date(time_now.getTime() + 21 * 1000).toISOString(), // Varying timestamps
+  bumped_on: new Date(time_now.getTime() + 21 * 1000).toISOString(), // Varying timestamps
+  delete_password: "123",
+  replies: generateReplies("9876543210")
+};
+const extraMessage3 = {
+  _id: "111111",
+  text: "Extra Message3",
+  created_on: new Date(time_now.getTime() + 33 * 1000).toISOString(), // Varying timestamps
+  bumped_on: new Date(time_now.getTime() + 33 * 1000).toISOString(), // Varying timestamps
+  delete_password: "123",
+  replies: generateReplies("111111")
 };
 
 const testReply = {
@@ -57,10 +73,21 @@ const testReply = {
   reported: false,
   thread_id: "987654321"
 }
+const testReply2 = {
+  _id: "333",
+  text: `mocha test reply That has to be deleted`,
+  created_on: new Date(time_now.getTime()).toISOString(), // Varying timestamps
+  delete_password: "123",
+  reported: false,
+  thread_id: "111111"
+}
 
 extraMessage.replies.push(testReply);
+extraMessage3.replies.push(testReply2);
 
 boards.testboard.messages.push(extraMessage);
+boards.testboard.messages.push(extraMessage2);
+boards.testboard.messages.push(extraMessage3);
 
 
 module.exports = boards;
