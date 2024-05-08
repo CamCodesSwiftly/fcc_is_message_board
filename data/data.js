@@ -8,7 +8,7 @@ let boards = {
   }
 };
 
-// Function to generate replies for a message
+// Function to generate 4 replies for a message
 function generateReplies(messageId) {
   const replies = [];
   for (let i = 0; i < 4; i++) {
@@ -46,8 +46,21 @@ const extraMessage = {
   created_on: new Date(time_now.getTime() + 11 * 1000).toISOString(), // Varying timestamps
   bumped_on: new Date(time_now.getTime() + 11 * 1000).toISOString(), // Varying timestamps
   delete_password: "123",
-  replies: generateReplies("9987654321")
+  replies: [...generateReplies("987654321"),]
 };
+
+const testReply = {
+  _id: "0000",
+  text: `Test Reply That has to be deleted`,
+  created_on: new Date(time_now.getTime()).toISOString(), // Varying timestamps
+  delete_password: "123",
+  reported: false,
+  thread_id: "987654321"
+}
+
+extraMessage.replies.push(testReply);
+
 boards.testboard.messages.push(extraMessage);
+
 
 module.exports = boards;

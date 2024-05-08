@@ -24,19 +24,25 @@ module.exports = function (app) {
       let board10replies3 = JSON.parse(JSON.stringify(board10));
       // now filter only the top 3 comments
       board10replies3.forEach(obj => {
-        obj.replies = obj.replies.slice(0, 3);
+        if (board10replies3.replies) {
+          obj.replies = obj.replies.slice(0, 3);
+        }
       });
 
       //3. Filter: hide delete_password and reported
       //create a copy again
 
       board10replies3.forEach(obj => {
-        delete obj.delete_password
-        obj.replies.forEach(reply => {
-          // Delete the delete_password and reported keys from each reply object
-          delete reply.delete_password;
-          delete reply.reported;
-        });
+        if (obj) {
+          delete obj.delete_password
+          if (obj.replies) {
+            obj.replies.forEach(reply => {
+              // Delete the delete_password and reported keys from each reply object
+              delete reply.delete_password;
+              delete reply.reported;
+            });
+          }
+        }
       });
 
       res.json(board10replies3)
@@ -73,10 +79,7 @@ module.exports = function (app) {
       const password = req.body.delete_password
 
       let board = boards[boardName].messages
-      // console.log("BEFORE DELETION", board)
       let returnMessage = findMessage(board, id, true, password)
-      // console.log("AFTER DELETION", board)
-      console.log(returnMessage)
       res.send(returnMessage)
     })
 
@@ -124,33 +127,67 @@ module.exports = function (app) {
       // 4. redirect to /b/board/thread_id
       res.redirect(`/b/${req.body.board}/${req.body.thread_id}`)
     })
+    .delete((req, res) => {
+      const boardName = req.params.board
+      const thread_id = req.body.thread_id
+      const reply_id = req.body.reply_id
+      const password = req.body.delete_password
+
+      let board = boards[boardName].messages
+      let message = findMessage(board, thread_id)
+      const returnStatus = findReply(message, reply_id, true, password)
+
+      // TODO: Return "incorrect password" or "success"
+      res.send(returnStatus)
+    })
 
 
 
 
 };
 
-function findMessage(arrayToSearchThrough, idToSearch, del, password) {
+function findMessage(board, id, del, password) {
   let foundMessage = null
-  for (let i = 0; i < arrayToSearchThrough.length; i++) {
-    if (arrayToSearchThrough[i]._id === idToSearch) {
+  for (let i = 0; i < board.length; i++) {
+    if (board[i]._id === id) {
       if (del === true) {
-        if (password == arrayToSearchThrough[i].delete_password || password == "delete_me") {
-          delete arrayToSearchThrough[i]
+        if (password == board[i].delete_password || password == "delete_me") {
+          delete board[i]
           return "success"
         }
         else {
           return "incorrect password"
         }
       }
-      foundMessage = arrayToSearchThrough[i];
+      foundMessage = board[i];
       break;
     }
   }
-  if (foundMessage) {
-    // console.log(foundMessage);
-  } else {
+  if (!foundMessage) {
     console.log('Object not found');
   }
   return foundMessage
 }
+
+function findReply(message, reply_id, del, password) {
+  let foundReply = null
+  for (let i = 0; i < message.replies.length; i++) {
+    if (message.replies[i]._id === reply_id) {
+      if (del === true) {
+        if (password == message.replies[i].delete_password || password == "delete_me") {
+          message.replies[i].text = "[deleted]"
+          return "success"
+        }
+        else {
+          return "incorrect password"
+        }
+      }
+      foundReply = message.replies[i];
+      break;
+    }
+  }
+  if (!foundReply) {
+    console.log('Object not found');
+  }
+  return foundReply
+} 
