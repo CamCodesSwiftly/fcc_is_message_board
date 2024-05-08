@@ -82,6 +82,18 @@ module.exports = function (app) {
       let returnMessage = findMessage(board, id, true, password)
       res.send(returnMessage)
     })
+    .put((req, res) => {
+      const boardName = req.params.board;
+      const thread_id = req.body.thread_id;
+
+      let board = boards[boardName].messages
+
+      let message = findMessage(board, thread_id)
+      console.log("before", message)
+      message.reported = true
+      console.log("after", message)
+      res.send("reported")
+    })
 
   app
     .route('/api/replies/:board')
@@ -135,12 +147,24 @@ module.exports = function (app) {
 
       let board = boards[boardName].messages
       let message = findMessage(board, thread_id)
-      const returnStatus = findReply(message, reply_id, true, password)
+      const replyStatus = findReply(message, reply_id, true, password)
 
       // TODO: Return "incorrect password" or "success"
-      res.send(returnStatus)
+      res.send(replyStatus)
     })
+    .put((req, res) => {
+      const boardName = req.params.board;
+      const thread_id = req.body.thread_id;
+      const reply_id = req.body.reply_id;
 
+      let board = boards[boardName].messages
+
+      let message = findMessage(board, thread_id)
+      let reply = findReply(message, reply_id)
+      reply.reported = true
+
+      res.send("reported")
+    })
 
 
 
